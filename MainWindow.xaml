@@ -1,0 +1,29 @@
+﻿<Window x:Class="Nus3Audio_Editor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Nus3Audio_Editor"
+        mc:Ignorable="d"
+        Title="Single Slot Announcer" Height="436" Width="324" ResizeMode="CanMinimize">
+    <Grid>
+        <Button x:Name="nus3audioFileBrowserButton" Content="Browse" HorizontalAlignment="Left" Margin="223,43,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="Nus3audioFileBrowserButton_Click"/>
+        <TextBox x:Name ="nus3audioFileTextBox" HorizontalAlignment="Left" Height="23" Margin="12,43,0,0" TextWrapping="Wrap" Text="Click Browse to get file" VerticalAlignment="Top" Width="206" IsEnabled="False"/>
+        <Label x:Name ="nus3audioFileLabel" Content="nus3audio File *" HorizontalAlignment="Left" Height="28" Margin="12,15,0,0" VerticalAlignment="Top" Width="114"/>
+        <Button x:Name="nus3bankFileBrowserButton" Content="Browse" HorizontalAlignment="Left" Margin="223,99,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="Nus3bankFileBrowserButton_Click"/>
+        <TextBox x:Name ="nus3bankFileTextBox" HorizontalAlignment="Left" Height="23" Margin="12,99,0,0" TextWrapping="Wrap" Text="Click Browse to get file" VerticalAlignment="Top" Width="206" IsEnabled="False"/>
+        <Label x:Name ="nus3bankFileLabel" Content="nus3bank File *" HorizontalAlignment="Left" Height="28" Margin="12,71,0,0" VerticalAlignment="Top" Width="114"/>
+        <Button x:Name="sliFileBrowserButton" Content="Browse" HorizontalAlignment="Left" Margin="223,155,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="SliFileBrowserButton_Click"/>
+        <TextBox x:Name ="sliFileTextBox" HorizontalAlignment="Left" Height="23" Margin="12,155,0,0" TextWrapping="Wrap" Text="Click Browse to get file" VerticalAlignment="Top" Width="206" IsEnabled="False"/>
+        <Label x:Name ="sliFileLabel" Content="sli File *" HorizontalAlignment="Left" Height="28" Margin="12,127,0,0" VerticalAlignment="Top" Width="114"/>
+        <TextBox x:Name ="entryIDTextBox" HorizontalAlignment="Left" Height="23" Margin="12,267,0,0" TextWrapping="Wrap" Text="The ID of the entry" VerticalAlignment="Top" Width="286" IsEnabled="False"/>
+        <Label x:Name ="entryIDLabel" Content="New Entry ID" HorizontalAlignment="Left" Height="28" Margin="12,239,0,0" VerticalAlignment="Top" Width="114"/>
+        <TextBox x:Name ="newSoundEffectTextBox" HorizontalAlignment="Left" Height="23" Margin="12,323,0,0" TextWrapping="Wrap" Text="vc_narration_characall_" VerticalAlignment="Top" Width="286"/>
+        <Label x:Name ="newSoundEffectLabel" Content="New Sound Effect Name *" HorizontalAlignment="Left" Height="28" Margin="12,295,0,0" VerticalAlignment="Top" Width="150"/>
+        <Button x:Name ="addSoundEffectButton" Content="Add Sound Effect" Margin="12,358,0,0" Height="28" VerticalAlignment="Top" HorizontalAlignment="Left" Width="286" Click="AddSoundEffectButton_Click"/>
+        <Button x:Name="audioFileButton" Content="Browse" HorizontalAlignment="Left" Margin="223,211,0,0" VerticalAlignment="Top" Width="75" Height="23" Click="AudioFileButton_Click"/>
+        <TextBox x:Name ="audioFileTextBox" HorizontalAlignment="Left" Height="23" Margin="12,211,0,0" TextWrapping="Wrap" Text="Click Browse to get file (Optional)" VerticalAlignment="Top" Width="206" IsEnabled="False"/>
+        <Label x:Name ="audioFileLabel" Content="New Audio File" HorizontalAlignment="Left" Height="28" Margin="12,183,0,0" VerticalAlignment="Top" Width="114"/>
+
+    </Grid>
+</Window>
