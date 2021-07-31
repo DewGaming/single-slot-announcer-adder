@@ -4,6 +4,8 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Path = System.IO.Path;
+using VGAudio.Utilities;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +18,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using VGAudio.Containers.Wave;
+using VGAudio.Containers.Idsp;
+using VGAudio.Formats;
 
 namespace Nus3Audio_Editor
 {
@@ -115,7 +120,7 @@ namespace Nus3Audio_Editor
         {
             // Set filter for file extension and default file extension 
             audioFile.DefaultExt = ".idsp";
-            audioFile.Filter = "IDSP files (*.idsp)|*.idsp";
+            audioFile.Filter = "Supported files (*.wav;*.idsp)|*.wav;*.idsp|WAV files ($.wav)|*.wav|IDSP files (*.idsp)|*.idsp";
 
             // Display OpenFileDialog by calling ShowDialog method 
             Nullable<bool> result = audioFile.ShowDialog();
@@ -150,8 +155,17 @@ namespace Nus3Audio_Editor
                     }
                     else
                     {
+                        byte[] audioFileBytes = File.ReadAllBytes(audioFile.FileName);
+                        switch (Path.GetExtension(audioFile.FileName))
+                        {
+                            case ".wav":
+                                audioFileBytes = this.ConvertWaveToIdsp(audioFileBytes);
+                                break;
+                            default:
+                                break;
+                        }
                         // Adds the entry to the nus3audio with the audio file's data.
-                        nus3audio.Add(newSoundEffectTextBox.Text, audioFile.FileName);
+                        nus3audio.Add(newSoundEffectTextBox.Text, audioFileBytes);
                     }
                     #endregion
 
@@ -255,6 +269,48 @@ namespace Nus3Audio_Editor
                         UInt32 newToneSize = comparableSize + 29 + (UInt32)newSoundEffectTextBox.Text.Length;
                         newToneSize += 4 - ((UInt32)newSoundEffectTextBox.Text.Length + 1) % 4;
                         skipCount = 0;
+
+                        List<byte> newNus3bankBytes = new List<byte>();
+                        newNus3bankBytes.AddRange(Encoding.ASCII.GetBytes("NUS3"));
+                        newNus3bankBytes.AddRange(BitConverter.GetBytes(nus3bankSize + newToneSize + 8));
+                        newNus3bankBytes.AddRange(nus3bankBytes.Skip(8).Take(toneHeaderOffset - 8));
+                        newNus3bankBytes.AddRange(BitConverter.GetBytes(toneSize + newToneSize + 8));
+                        newNus3bankBytes.AddRange(nus3bankBytes.Skip(toneHeaderOffset + 4).Take((int)toneOffset - toneHeaderOffset));
+                        newNus3bankBytes.AddRange(BitConverter.GetBytes(toneSize + newToneSize + 8));
+                        newNus3bankBytes.AddRange(BitConverter.GetBytes(toneCount + 1));
+                        for (var count = 0; count < toneCount; count++)
+                        {
+                            uint curToneOffset = (UInt32)StructConverter.Unpack("I", (int)toneOffset + 12 + count * 8, nus3bankBytes.ToArray())[0];
+                            byte[] modToneOffset = BitConverter.GetBytes(curToneOffset + 8);
+                            newNus3bankBytes.AddRange(modToneOffset);
+                            newNus3bankBytes.AddRange(nus3bankBytes.Skip((int)toneOffset + 16 + count * 8).Take(4).ToArray());
+                        }
+
+                        newNus3bankBytes.AddRange(BitConverter.GetBytes(lastToneOffset + lastToneSize + 8));
+                        newNus3bankBytes.AddRange(BitConverter.GetBytes(newToneSize));
+                        newNus3bankBytes.AddRange(nus3bankBytes.Skip((int)toneOffset + 12 + (int)toneCount * 8).Take(((int)lastToneOffset + (int)lastToneSize) - 4 - (int)toneCount * 8));
+                        newNus3bankBytes.AddRange(comparablePreMetaData);
+                        newNus3bankBytes.Add((byte)(newSoundEffectTextBox.Text.Length + 1));
+                        newNus3bankBytes.AddRange(Encoding.ASCII.GetBytes(newSoundEffectTextBox.Text));
+                        int counter = newSoundEffectTextBox.Text.Length + 1;
+                        if (counter % 4 == 0)
+                        {
+                            newNus3bankBytes.AddRange(BitConverter.GetBytes(0));
+                        }
+
+                        while (counter % 4 != 0)
+                        {
+                            newNus3bankBytes.Add((byte)0);
+                            counter++;
+                        }
+
+                        newNus3bankBytes.AddRange(BitConverter.GetBytes(0));
+                        newNus3bankBytes.AddRange(BitConverter.GetBytes(8));
+                        newNus3bankBytes.AddRange(BitConverter.GetBytes(0));
+                        newNus3bankBytes.AddRange(BitConverter.GetBytes(8936));
+                        newNus3bankBytes.AddRange(comparableMetaData);
+                        newNus3bankBytes.AddRange(nus3bankBytes.Skip((int)(toneOffset + 8 + lastToneOffset + lastToneSize)).ToArray());
+
                         #endregion
 
                         #region sli
@@ -303,58 +359,7 @@ namespace Nus3Audio_Editor
                             {
                                 newOffset = (int)sliCount;
                             }
-                            #endregion
 
-                            #region writeToFiles
-                            #region writeNus3audio
-                            nus3audio.Write(nus3audioPath);
-                            #endregion
-                            
-                            #region writeNus3bank
-                            List<byte> newNus3bankBytes = new List<byte>();
-                            newNus3bankBytes.AddRange(Encoding.ASCII.GetBytes("NUS3"));
-                            newNus3bankBytes.AddRange(BitConverter.GetBytes(nus3bankSize + newToneSize + 8));
-                            newNus3bankBytes.AddRange(nus3bankBytes.Skip(8).Take(toneHeaderOffset - 8));
-                            newNus3bankBytes.AddRange(BitConverter.GetBytes(toneSize + newToneSize + 8));
-                            newNus3bankBytes.AddRange(nus3bankBytes.Skip(toneHeaderOffset + 4).Take((int)toneOffset - toneHeaderOffset));
-                            newNus3bankBytes.AddRange(BitConverter.GetBytes(toneSize + newToneSize + 8));
-                            newNus3bankBytes.AddRange(BitConverter.GetBytes(toneCount + 1));
-                            for (var count = 0; count < toneCount; count++)
-                            {
-                                uint curToneOffset = (UInt32)StructConverter.Unpack("I", (int)toneOffset + 12 + count * 8, nus3bankBytes.ToArray())[0];
-                                byte[] modToneOffset = BitConverter.GetBytes(curToneOffset + 8);
-                                newNus3bankBytes.AddRange(modToneOffset);
-                                newNus3bankBytes.AddRange(nus3bankBytes.Skip((int)toneOffset + 16 + count * 8).Take(4).ToArray());
-                            }
-                            
-                            newNus3bankBytes.AddRange(BitConverter.GetBytes(lastToneOffset + lastToneSize + 8));
-                            newNus3bankBytes.AddRange(BitConverter.GetBytes(newToneSize));
-                            newNus3bankBytes.AddRange(nus3bankBytes.Skip((int)toneOffset + 12 + (int)toneCount * 8).Take(((int)lastToneOffset + (int)lastToneSize) - 4 - (int)toneCount * 8));
-                            newNus3bankBytes.AddRange(comparablePreMetaData);
-                            newNus3bankBytes.Add((byte)(newSoundEffectTextBox.Text.Length + 1));
-                            newNus3bankBytes.AddRange(Encoding.ASCII.GetBytes(newSoundEffectTextBox.Text));
-                            int counter = newSoundEffectTextBox.Text.Length + 1;
-                            if (counter % 4 == 0)
-                            {
-                                newNus3bankBytes.AddRange(BitConverter.GetBytes(0));
-                            }
-                            
-                            while (counter %4 != 0)
-                            {
-                                newNus3bankBytes.Add((byte)0);
-                                counter++;
-                            }
-                            
-                            newNus3bankBytes.AddRange(BitConverter.GetBytes(0));
-                            newNus3bankBytes.AddRange(BitConverter.GetBytes(8));
-                            newNus3bankBytes.AddRange(BitConverter.GetBytes(0));
-                            newNus3bankBytes.AddRange(BitConverter.GetBytes(8936));
-                            newNus3bankBytes.AddRange(comparableMetaData);
-                            newNus3bankBytes.AddRange(nus3bankBytes.Skip((int)(toneOffset + 8 + lastToneOffset + lastToneSize)).ToArray());
-                            File.WriteAllBytes(nus3bankFile.FileName, newNus3bankBytes.ToArray());
-                            #endregion
-
-                            #region writeSli
                             byte[] comparableData = sliBytes.Skip(12 + 16 * comparableOffset + 8).Take(4).ToArray();
                             List<byte> newSliBytes = new List<byte>();
                             newSliBytes.AddRange(Encoding.ASCII.GetBytes("SLI"));
@@ -376,9 +381,13 @@ namespace Nus3Audio_Editor
                                 newSliBytes.AddRange(BitConverter.GetBytes(int.Parse(entryIDTextBox.Text)));
                                 newSliBytes.AddRange(sliBytes.Skip(12 + 16 * newOffset).ToArray());
                             }
-
-                            File.WriteAllBytes(sliFile.FileName, newSliBytes.ToArray());
                             #endregion
+
+                            #region writeToFiles
+                            nus3audio.Write(nus3audioPath);
+                            //File.WriteAllBytes(nus3bankFile.FileName, newNus3bankBytes.ToArray());
+                            //File.WriteAllBytes(sliFile.FileName, newSliBytes.ToArray());
+
                             MessageBox.Show("Files have been modified! Copy this hash (0x" + newHash.ToString("X") + ") for use in ParamXML");
                             // Sets the textbox text for the Entry ID to new the count of nus3audio files.
                             entryIDTextBox.Text = nus3audio.files.Count().ToString();
@@ -399,6 +408,14 @@ namespace Nus3Audio_Editor
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+
+        private byte[] ConvertWaveToIdsp(byte[] bytes)
+        {
+            WaveReader reader = new WaveReader();
+            IdspWriter writer = new IdspWriter();
+            AudioData audioData = reader.Read(bytes);
+            return writer.GetFile(audioData);
         }
 
         private static ulong ReadUInt64(byte[] bytes, ref int skipCount)
