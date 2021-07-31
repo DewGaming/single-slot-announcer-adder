@@ -385,8 +385,8 @@ namespace Nus3Audio_Editor
 
                             #region writeToFiles
                             nus3audio.Write(nus3audioPath);
-                            //File.WriteAllBytes(nus3bankFile.FileName, newNus3bankBytes.ToArray());
-                            //File.WriteAllBytes(sliFile.FileName, newSliBytes.ToArray());
+                            File.WriteAllBytes(nus3bankFile.FileName, newNus3bankBytes.ToArray());
+                            File.WriteAllBytes(sliFile.FileName, newSliBytes.ToArray());
 
                             MessageBox.Show("Files have been modified! Copy this hash (0x" + newHash.ToString("X") + ") for use in ParamXML");
                             // Sets the textbox text for the Entry ID to new the count of nus3audio files.
