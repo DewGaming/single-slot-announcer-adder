@@ -391,6 +391,7 @@ namespace Nus3Audio_Editor
                             MessageBox.Show("Files have been modified! Copy this hash (0x" + newHash.ToString("X") + ") for use in ParamXML");
                             // Sets the textbox text for the Entry ID to new the count of nus3audio files.
                             entryIDTextBox.Text = nus3audio.files.Count().ToString();
+                            newSoundEffectTextBox.Text = "vc_narration_characall_";
                             #endregion
                         }
                     }
