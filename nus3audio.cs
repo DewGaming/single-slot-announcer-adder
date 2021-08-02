@@ -65,6 +65,14 @@ namespace Nus3Audio_Editor
             UInt32[] trackNumbers;
             byte[] data;
 
+            public UInt32[] TrackNumbers
+            {
+                get
+                {
+                    return trackNumbers;
+                }
+            }
+
             public void Read(BinaryReader f, UInt32 AudiindxCount)
             {
                 base.Read(f);

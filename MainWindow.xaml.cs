@@ -78,7 +78,7 @@ namespace Nus3Audio_Editor
                 // Sets the textbox text to that of the file name.
                 nus3audioFileTextBox.Text = fileDialog.SafeFileName;
                 // Sets the textbox text for the Entry ID to the count of nus3audio files.
-                entryIDTextBox.Text = nus3audio.files.Count().ToString();
+                entryIDTextBox.Text = (nus3audio.tnid.TrackNumbers.Last() + 1).ToString();
             }
         }
 
@@ -390,7 +390,7 @@ namespace Nus3Audio_Editor
 
                             MessageBox.Show("Files have been modified! Copy this hash (0x" + newHash.ToString("X") + ") for use in ParamXML");
                             // Sets the textbox text for the Entry ID to new the count of nus3audio files.
-                            entryIDTextBox.Text = nus3audio.files.Count().ToString();
+                            entryIDTextBox.Text = (nus3audio.tnid.TrackNumbers.Last() + 1).ToString();
                             newSoundEffectTextBox.Text = "vc_narration_characall_";
                             #endregion
                         }
