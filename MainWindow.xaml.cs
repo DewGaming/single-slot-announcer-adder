@@ -37,7 +37,7 @@ namespace Nus3Audio_Editor
         /// <summary>
         /// The file path for the nus3audio file.
         /// </summary>
-        private string nus3audioPath;
+        private OpenFileDialog nus3audioFile;
 
         /// <summary>
         /// The OpenFileDialog variable for nus3bank files.
@@ -62,21 +62,19 @@ namespace Nus3Audio_Editor
         private void Nus3audioFileBrowserButton_Click(object sender, RoutedEventArgs e)
         {
             // Set filter for file extension and default file extension 
-            OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.DefaultExt = ".nus3audio";
-            fileDialog.Filter = "nus3audio files (*.nus3audio)|*.nus3audio";
+            nus3audioFile = new OpenFileDialog();
+            nus3audioFile.DefaultExt = ".nus3audio";
+            nus3audioFile.Filter = "nus3audio files (*.nus3audio)|*.nus3audio";
 
             // Display OpenFileDialog by calling ShowDialog method 
-            Nullable<bool> result = fileDialog.ShowDialog();
+            Nullable<bool> result = nus3audioFile.ShowDialog();
 
             // Get the selected file name and display in a TextBox 
             if (result == true)
             {
-                // Creates a nus3audio variable with the given file path.
-                nus3audioPath = fileDialog.FileName;
-                nus3audio = new nus3audio(nus3audioPath);
+                nus3audio = new nus3audio(nus3audioFile.FileName);
                 // Sets the textbox text to that of the file name.
-                nus3audioFileTextBox.Text = fileDialog.SafeFileName;
+                nus3audioFileTextBox.Text = nus3audioFile.SafeFileName;
                 // Sets the textbox text for the Entry ID to the count of nus3audio files.
                 entryIDTextBox.Text = (nus3audio.tnid.TrackNumbers.Last() + 1).ToString();
             }
@@ -384,11 +382,17 @@ namespace Nus3Audio_Editor
                             #endregion
 
                             #region writeToFiles
-                            nus3audio.Write(nus3audioPath);
+                            nus3audio.Write(nus3audioFile.FileName);
+                            string textPath = nus3audioFile.FileName.Replace(nus3audioFile.SafeFileName, "Hashes.txt");
+                            using (StreamWriter writer = new StreamWriter(textPath, true))
+                            {
+                                writer.WriteLine(string.Concat(newSoundEffectTextBox.Text, " - 0x", newHash.ToString("X")));
+                            }
+
                             File.WriteAllBytes(nus3bankFile.FileName, newNus3bankBytes.ToArray());
                             File.WriteAllBytes(sliFile.FileName, newSliBytes.ToArray());
 
-                            MessageBox.Show("Files have been modified! Copy this hash (0x" + newHash.ToString("X") + ") for use in ParamXML");
+                            MessageBox.Show("Files have been modified! The new hash (0x" + newHash.ToString("X") + ") has been saved to a \"Hashes.txt\" file in the same location as your .nus3audio file. Keep this for use in ParamXML / prcEditor!");
                             // Sets the textbox text for the Entry ID to new the count of nus3audio files.
                             entryIDTextBox.Text = (nus3audio.tnid.TrackNumbers.Last() + 1).ToString();
                             newSoundEffectTextBox.Text = "vc_narration_characall_";
